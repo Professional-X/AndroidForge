@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer orbital hexagon ring -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M54,23L80.8,38.5L80.8,69.5L54,85L27.2,69.5L27.2,38.5Z"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.4">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:endX="82"
+                android:endY="82"
+                android:startX="26"
+                android:startY="26"
+                android:type="linear">
+                <item android:color="#00E5FF" android:offset="0.0" />
+                <item android:color="#8B5CF6" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- XIVOX intersecting X + Play prism -->
+    <path
+        android:pathData="M42,37L68,54L42,71Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="68"
+                android:endY="71"
+                android:startX="42"
+                android:startY="37"
+                android:type="linear">
+                <item android:color="#00E5FF" android:offset="0.0" />
+                <item android:color="#8B5CF6" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Precision diagonal slash accent -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M36,70L72,38"
+        android:strokeColor="#F8FAFC"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.8" />
+</vector>

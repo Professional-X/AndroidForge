@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Xivox.Main" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/xivox_amoled_black</item>
+        <item name="android:statusBarColor">@color/xivox_amoled_black</item>
+        <item name="android:navigationBarColor">@color/xivox_amoled_black</item>
+        <item name="android:colorBackground">@color/xivox_amoled_black</item>
+    </style>
+
+    <style name="Theme.Xivox.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/xivox_amoled_black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_xivox_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.Xivox.Main</item>
+    </style>
+</resources>

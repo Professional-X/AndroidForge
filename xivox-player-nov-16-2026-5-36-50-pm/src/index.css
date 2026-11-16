@@ -1,0 +1,138 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --nebula-bg: #f4f6fb;
+    --nebula-surface: #ffffff;
+    --nebula-surface-elevated: rgba(255, 255, 255, 0.84);
+    --nebula-border: rgba(15, 23, 42, 0.09);
+    --nebula-text: #0b1020;
+    --nebula-text-muted: #52607a;
+    --nebula-accent: #7c3aed;
+    --nebula-accent-secondary: #2563eb;
+    --nebula-accent-glow: rgba(124, 58, 237, 0.25);
+    --nebula-accent-rgb: 124, 58, 237;
+    --nebula-accent-2-rgb: 37, 99, 235;
+  }
+
+  html[data-theme="dark"] {
+    --nebula-bg: #070a12;
+    --nebula-surface: #0f1524;
+    --nebula-surface-elevated: rgba(15, 21, 36, 0.78);
+    --nebula-border: rgba(148, 163, 184, 0.14);
+    --nebula-text: #f8fafc;
+    --nebula-text-muted: #94a3b8;
+  }
+
+  html[data-theme="amoled"] {
+    --nebula-bg: #000000;
+    --nebula-surface: #090b12;
+    --nebula-surface-elevated: rgba(11, 14, 24, 0.8);
+    --nebula-border: rgba(255, 255, 255, 0.1);
+    --nebula-text: #f8fafc;
+    --nebula-text-muted: #94a3b8;
+  }
+
+  html[data-accent="nebula"] {
+    --nebula-accent: #9b5cff;
+    --nebula-accent-secondary: #00c8ff;
+    --nebula-accent-glow: rgba(155, 92, 255, 0.38);
+    --nebula-accent-rgb: 155, 92, 255;
+    --nebula-accent-2-rgb: 0, 200, 255;
+  }
+
+  html[data-accent="cyan"] {
+    --nebula-accent: #06b6d4;
+    --nebula-accent-secondary: #3b82f6;
+    --nebula-accent-glow: rgba(6, 182, 212, 0.35);
+    --nebula-accent-rgb: 6, 182, 212;
+    --nebula-accent-2-rgb: 59, 130, 246;
+  }
+
+  html[data-accent="amber"] {
+    --nebula-accent: #f59e0b;
+    --nebula-accent-secondary: #ef4444;
+    --nebula-accent-glow: rgba(245, 158, 11, 0.35);
+    --nebula-accent-rgb: 245, 158, 11;
+    --nebula-accent-2-rgb: 239, 68, 68;
+  }
+
+  html[data-accent="emerald"] {
+    --nebula-accent: #10b981;
+    --nebula-accent-secondary: #06b6d4;
+    --nebula-accent-glow: rgba(16, 185, 129, 0.35);
+    --nebula-accent-rgb: 16, 185, 129;
+    --nebula-accent-2-rgb: 6, 182, 212;
+  }
+
+  html[data-accent="crimson"] {
+    --nebula-accent: #f43f5e;
+    --nebula-accent-secondary: #a855f7;
+    --nebula-accent-glow: rgba(244, 63, 94, 0.35);
+    --nebula-accent-rgb: 244, 63, 94;
+    --nebula-accent-2-rgb: 168, 85, 247;
+  }
+
+  body {
+    background-color: var(--nebula-bg);
+    color: var(--nebula-text);
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .font-mono-tabular {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.nebula-glass {
+  background: var(--nebula-surface-elevated);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--nebula-border);
+}
+
+.nebula-card {
+  background: var(--nebula-surface);
+  border: 1px solid var(--nebula-border);
+}
+
+.nebula-accent-gradient {
+  background: linear-gradient(135deg, var(--nebula-accent), var(--nebula-accent-secondary));
+}
+
+.nebula-accent-glow {
+  box-shadow: 0 0 24px -4px var(--nebula-accent-glow);
+}
+
+.nebula-border-glow:focus-within,
+.nebula-border-glow:hover {
+  border-color: rgba(var(--nebula-accent-rgb), 0.5);
+  box-shadow: 0 0 24px -6px var(--nebula-accent-glow);
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

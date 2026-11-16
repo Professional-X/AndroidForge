@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="xivox_amoled_black">#000000</color>
+    <color name="xivox_obsidian">#070911</color>
+    <color name="xivox_surface">#0E1220</color>
+    <color name="xivox_neon_cyan">#00E5FF</color>
+    <color name="xivox_electric_violet">#8B5CF6</color>
+    <color name="xivox_text_primary">#F8FAFC</color>
+    <color name="xivox_text_secondary">#94A3B8</color>
+</resources>
