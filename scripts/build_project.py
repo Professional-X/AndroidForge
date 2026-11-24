@@ -122,7 +122,8 @@ def main() -> int:
             all_commands = filtered
 
     # If we use gradlew, regenerate wrapper if missing
-    if use_wrapper and project_type != "flutter":
+    if use_wrapper    cmd = [part.strip("'\"") for part in cmd]
+ and project_type != "flutter":
         gradlew = root / "gradlew"
         if not gradlew.exists():
             print("WARNING: gradlew missing despite detection — regenerating via system gradle", flush=True)
