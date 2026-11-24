@@ -6,8 +6,8 @@ project. The script is non-destructive: it never modifies source files, only
 runs commands in the project directory.
 
 Strategy:
-  1. If Flutter → `flutter pub get` then `flutter build apk`.
-  2. Otherwise → run gradle tasks (assembleDebug, assembleRelease, bundleDebug)
+  1. If Flutter -> `flutter pub get` then `flutter build apk`.
+  2. Otherwise -> run gradle tasks (assembleDebug, assembleRelease, bundleDebug)
      in order until one succeeds. Stop on first success.
   3. If the gradle wrapper is missing/corrupt, regenerate it with
      `gradle wrapper --gradle-version <X>` first.
@@ -108,7 +108,6 @@ def main() -> int:
     all_commands = toolchain.get("build_commands", [])
     prep_commands = toolchain.get("prep_commands", []) or []
     if args.variant != "auto":
-        # Filter by requested variant
         filtered = []
         for cmd in all_commands:
             cmd_str = " ".join(cmd).lower()
@@ -122,8 +121,7 @@ def main() -> int:
             all_commands = filtered
 
     # If we use gradlew, regenerate wrapper if missing
-    if use_wrapper    cmd = [part.strip("'\"") for part in cmd]
- and project_type != "flutter":
+    if use_wrapper and project_type != "flutter":
         gradlew = root / "gradlew"
         if not gradlew.exists():
             print("WARNING: gradlew missing despite detection — regenerating via system gradle", flush=True)
@@ -132,19 +130,13 @@ def main() -> int:
     # Determine env for build
     build_env: dict[str, str] = {}
     if needs_flutter:
-        # Flutter requires Java 17 for Android builds
         pass
 
     # ---- Run prep commands first ----
-    # These are commands like `flutter pub get` that must run before the
-    # actual build, but whose exit code does NOT determine whether the
-    # build succeeded (they don't produce an APK — they just download
-    # dependencies). We log their output but never let their success
-    # short-circuit the build_commands loop below.
     if prep_commands:
         print(f"\n=== Running {len(prep_commands)} prep command(s) — these do not count as build success ===", flush=True)
     for cmd in prep_commands:
-        # Apply the same gradlew sh-wrap if needed (rare for prep, but safe)
+        cmd = [part.strip("'") for part in cmd]
         if use_wrapper and cmd and cmd[0].endswith("gradlew"):
             gradlew_path = Path(cmd[0])
             if gradlew_path.exists():
@@ -155,8 +147,6 @@ def main() -> int:
                 cmd = ["/bin/sh", str(gradlew_path)] + cmd[1:]
         rc, log = run(cmd, root, log_dir / f"prep-{int(time.time())}-{len(cmd)}.log", build_env)
         if rc != 0:
-            # Prep failure is a warning, not a build failure — the build
-            # commands might still succeed (e.g. dependencies cached).
             print(f"⚠ prep command failed (rc={rc}): {' '.join(cmd)}", flush=True)
         else:
             print(f"✓ prep command ok: {' '.join(cmd)}", flush=True)
@@ -168,9 +158,7 @@ def main() -> int:
     successful_command: list[str] | None = None
 
     for cmd in all_commands:
-        # For gradlew commands: ensure the file is executable AND invoke it
-        # via `sh` to bypass any remaining exec-bit issues (Python's
-        # zipfile extraction sometimes loses the +x bit even after chmod).
+        cmd = [part.strip("'") for part in cmd]
         if use_wrapper and cmd and cmd[0].endswith("gradlew"):
             gradlew_path = Path(cmd[0])
             if gradlew_path.exists():
@@ -178,10 +166,6 @@ def main() -> int:
                     gradlew_path.chmod(gradlew_path.stat().st_mode | 0o111)
                 except Exception:
                     pass
-                # Replace ["/path/to/gradlew", "assembleDebug"] with
-                #                ["/bin/sh", "/path/to/gradlew", "assembleDebug"]
-                # This makes the build resilient to filesystems that
-                # silently drop the exec bit.
                 cmd = ["/bin/sh", str(gradlew_path)] + cmd[1:]
         rc, log = run(cmd, root, log_dir / f"build-{int(time.time())}-{len(cmd)}.log", build_env)
         last_rc = rc
