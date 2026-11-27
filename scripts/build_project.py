@@ -11,8 +11,10 @@ Strategy:
      in order until one succeeds. Stop on first success.
   3. If the gradle wrapper is missing/corrupt, regenerate it with
      `gradle wrapper --gradle-version <X>` first.
-  4. On success, write the produced command + log path to GITHUB_OUTPUT.
-  5. On failure, exit non-zero so the workflow runs the diagnosis step.
+  4. For Flutter Android builds, raise an outdated wrapper to Gradle 8.14.3,
+     which satisfies Flutter's Gradle 8.14.0 minimum from the reported failure.
+  5. On success, write the produced command + log path to GITHUB_OUTPUT.
+  6. On failure, exit non-zero so the workflow runs the diagnosis step.
 
 The build is run inside the project root directory and inherits the runner's
 PATH (which includes the JDK and Gradle installed by previous workflow steps).
@@ -22,11 +24,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import Any
+
+
+FLUTTER_MIN_GRADLE = (8, 14, 3)
+FLUTTER_MIN_GRADLE_VERSION = ".".join(str(part) for part in FLUTTER_MIN_GRADLE)
 
 
 def run(cmd: list[str], cwd: Path, log_file: Path, env: dict[str, str] | None = None) -> tuple[int, str]:
@@ -75,6 +82,62 @@ def maybe_regenerate_wrapper(project_root: Path, gradle_version: str | None, log
     cmd = ["gradle", "wrapper", "--gradle-version", gradle_version, "--distribution-type", "bin"]
     rc, _ = run(cmd, project_root, log_dir / "regenerate-wrapper.log")
     return rc == 0 and jar.exists()
+
+
+def _version_tuple(version: str) -> tuple[int, ...]:
+    """Parse a dotted numeric version for safe numeric comparison."""
+    try:
+        return tuple(int(part) for part in version.split("."))
+    except ValueError:
+        return (0,)
+
+
+def ensure_flutter_android_gradle(root: Path) -> str | None:
+    """Upgrade an outdated Flutter Android wrapper to Gradle 8.14.3.
+
+    Flutter projects keep their wrapper under android/ rather than at the
+    project root. This edits only the extracted build workspace. Returns a
+    short status message for logging, or None when no wrapper needs changing.
+    """
+    candidates = (
+        root / "android" / "gradle" / "wrapper" / "gradle-wrapper.properties",
+        root / "gradle" / "wrapper" / "gradle-wrapper.properties",
+    )
+    props = next((candidate for candidate in candidates if candidate.is_file()), None)
+    if props is None:
+        return None
+
+    content = props.read_text(encoding="utf-8", errors="replace")
+    url_match = re.search(r"(?m)^\s*distributionUrl\s*=\s*(\S+)", content)
+    if not url_match:
+        return None
+
+    current_match = re.search(r"gradle-([\d.]+)-(?:bin|all)\.zip", url_match.group(1))
+    if not current_match:
+        return None
+    current = current_match.group(1).rstrip(".")
+    if _version_tuple(current) >= FLUTTER_MIN_GRADLE:
+        return None
+
+    new_url = f"https\\://services.gradle.org/distributions/gradle-{FLUTTER_MIN_GRADLE_VERSION}-bin.zip"
+    replacement = re.sub(
+        r"gradle-[\d.]+-(?:bin|all)\.zip",
+        f"gradle-{FLUTTER_MIN_GRADLE_VERSION}-bin.zip",
+        url_match.group(1),
+    )
+    updated = content[:url_match.start(1)] + replacement + content[url_match.end(1):]
+    if updated == content:
+        # Handle a nonstandard/escaped URL without risking unrelated edits.
+        updated = re.sub(
+            r"(?m)^\s*distributionUrl\s*=\s*\S+",
+            f"distributionUrl={new_url}",
+            content,
+            count=1,
+        )
+    if updated != content:
+        props.write_text(updated, encoding="utf-8")
+        return f"Updated {props} from Gradle {current} to {FLUTTER_MIN_GRADLE_VERSION} for Flutter compatibility"
+    return None
 
 
 def main() -> int:
@@ -128,6 +191,13 @@ def main() -> int:
             print("WARNING: gradlew missing despite detection — regenerating via system gradle", flush=True)
             maybe_regenerate_wrapper(root, toolchain.get("gradle_version"), log_dir)
 
+    # Flutter's wrapper lives under android/. Fix its version before invoking
+    # Flutter so its Gradle plugin validation does not stop the build early.
+    if needs_flutter:
+        gradle_fix = ensure_flutter_android_gradle(root)
+        if gradle_fix:
+            print(f"✓ {gradle_fix}", flush=True)
+
     # Determine env for build
     build_env: dict[str, str] = {}
     if needs_flutter:
@@ -138,8 +208,8 @@ def main() -> int:
     # These are commands like `flutter pub get` that must run before the
     # actual build, but whose exit code does NOT determine whether the
     # build succeeded (they don't produce an APK — they just download
-    # dependencies). We log their output but never let their success
-    # short-circuit the build_commands loop below.
+    # dependencies). We log their output but never let them short-circuit the
+    # build_commands loop below.
     if prep_commands:
         print(f"\n=== Running {len(prep_commands)} prep command(s) — these do not count as build success ===", flush=True)
     for cmd in prep_commands:
